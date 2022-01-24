@@ -5,6 +5,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Properties;
 
 import static org.quartz.JobBuilder.*;
 import static org.quartz.TriggerBuilder.*;
@@ -12,9 +13,8 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 public class AlertRabbit {
 
-    private static int rabbitInterval = 0;
-
-    public void load() {
+    public static Properties load() {
+        Properties properties = new Properties();
         try (BufferedReader read = new BufferedReader(new FileReader("rabbit.properties"))) {
             read.lines().filter(line -> line.length() > 0)
                     .forEach(line -> {
@@ -22,21 +22,22 @@ public class AlertRabbit {
                             throw new IllegalArgumentException("no key or value");
                         }
                         String[] keyValue = line.split("=");
-                        rabbitInterval = Integer.parseInt(keyValue[1]);
+                        properties.setProperty("interval", keyValue[1]);
                     });
         } catch (IOException e) {
             System.out.println("file not found");
             e.printStackTrace();
         }
+        return properties;
     }
     public static void main(String[] args) {
-
+        int interval = Integer.parseInt(load().getProperty("interval"));
         try {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDetail job = newJob(Rabbit.class).build();
             SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(rabbitInterval)
+                    .withIntervalInSeconds(interval)
                     .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
