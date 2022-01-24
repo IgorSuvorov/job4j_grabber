@@ -5,6 +5,11 @@ import org.quartz.impl.StdSchedulerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static org.quartz.JobBuilder.*;
@@ -13,29 +18,44 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 public class AlertRabbit {
 
-    public static Properties load() {
-        Properties properties = new Properties();
-        try (BufferedReader read = new BufferedReader(new FileReader("rabbit.properties"))) {
-            read.lines().filter(line -> line.length() > 0)
-                    .forEach(line -> {
-                        if (line.startsWith("=") || line.endsWith("=")) {
-                            throw new IllegalArgumentException("no key or value");
-                        }
-                        String[] keyValue = line.split("=");
-                        properties.setProperty("interval", keyValue[1]);
-                    });
-        } catch (IOException e) {
-            System.out.println("file not found");
-            e.printStackTrace();
+    private Connection connection;
+
+    private void initConnection() {
+        try (InputStream in = AlertRabbit.class.getClassLoader()
+                .getResourceAsStream("rabbit.properties")) {
+
+            Properties config = new Properties();
+            config.load(in);
+            Class.forName(config.getProperty("driver-class-name"));
+            connection = DriverManager.getConnection(
+                    config.getProperty("url"),
+                    config.getProperty("username"),
+                    config.getProperty("password")
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
-        return properties;
     }
-    public static void main(String[] args) {
-        int interval = Integer.parseInt(load().getProperty("interval"));
+
+    public static Properties load() throws IOException {
+        Properties config = new Properties();
+        try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
+        config.load(in);
+        }
+        return config;
+    }
+
+    public static void main(String[] args) throws IOException {
+        int interval = Integer.parseInt(load().getProperty("rabbit.interval"));
         try {
+            List<Long> store = new ArrayList<>();
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
-            JobDetail job = newJob(Rabbit.class).build();
+            JobDataMap data = new JobDataMap();
+            data.put("store", store);
+            JobDetail job = newJob(Rabbit.class)
+                    .usingJobData(data)
+                    .build();
             SimpleScheduleBuilder times = simpleSchedule()
                     .withIntervalInSeconds(interval)
                     .repeatForever();
@@ -44,15 +64,25 @@ public class AlertRabbit {
                     .withSchedule(times)
                     .build();
             scheduler.scheduleJob(job, trigger);
-        } catch (SchedulerException se) {
+            Thread.sleep(10000);
+            scheduler.shutdown();
+            System.out.println(store);
+        } catch (Exception se) {
             se.printStackTrace();
         }
     }
 
     public static class Rabbit implements Job {
+
+        public Rabbit() {
+            System.out.println(hashCode());
+        }
+
         @Override
         public void execute(JobExecutionContext context) throws JobExecutionException {
             System.out.println("Rabbit runs here ...");
+            List<Long> store = (List<Long>) context.getJobDetail().getJobDataMap().get("store");
+            store.add(System.currentTimeMillis());
         }
     }
 }
