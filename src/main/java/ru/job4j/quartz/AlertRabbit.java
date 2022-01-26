@@ -38,18 +38,21 @@ public class AlertRabbit {
     }
 
     public static void main(String[] args) {
-        int interval = Integer.parseInt(load().getProperty("rabbit.interval"));
+        Properties properties = load();
         try {
-            Connection connection = initConnection(load());
-            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-            scheduler.start();
-            JobDataMap data = new JobDataMap();
-            data.put("connection", connection);
+            Scheduler scheduler;
+            JobDataMap data;
+            try (Connection connection = initConnection(properties)) {
+                scheduler = StdSchedulerFactory.getDefaultScheduler();
+                scheduler.start();
+                data = new JobDataMap();
+                data.put("connection", connection);
+            }
             JobDetail job = newJob(Rabbit.class)
                     .usingJobData(data)
                     .build();
             SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(interval)
+                    .withIntervalInSeconds(Integer.parseInt(properties.getProperty("rabbit.interval")))
                     .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
@@ -75,13 +78,14 @@ public class AlertRabbit {
             try {
                 Connection connection =
                         (Connection) context.getJobDetail().getJobDataMap().get("connection");
-                Statement statement = connection.createStatement();
-                String sql = String.format(
-                        "insert into rabbit (created_date) values ('%s')",
-                        new Timestamp(System.currentTimeMillis())
-                );
-                statement.execute(sql);
+                try (PreparedStatement statement =
+                             connection.prepareStatement("insert into rabbit (created_date) values (?)")) {
+                    statement.setString(1, String.valueOf(new Timestamp(System.currentTimeMillis())));
+                statement.execute();
             } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
                 e.printStackTrace();
             }
         }
