@@ -11,10 +11,8 @@ public class SqlRuParse {
         Elements row = doc.select(".postslisttopic");
         for (Element td : row) {
             Element href = td.child(0);
-            String date = td.parent().child(5).text();
             System.out.println(href.attr("href"));
             System.out.println(href.text());
-            System.out.println(date);
         }
     }
 }
