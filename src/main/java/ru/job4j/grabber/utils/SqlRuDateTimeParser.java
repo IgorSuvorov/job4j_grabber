@@ -8,6 +8,13 @@ import java.util.Map;
 import static java.util.Map.entry;
 
 public class SqlRuDateTimeParser implements DateTimeParser {
+    private static final Map<String, String> YESTERDAY = Map.of("сегодня", LocalDateTime.now()
+    .format(DateTimeFormatter.ofPattern("d-MM-yy")));
+
+    private static final Map<String, String> TODAY = Map.of("вчера", LocalDateTime.now()
+    .minusDays(1).format(DateTimeFormatter.ofPattern("d-MM-yy")));
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d-MM-yy HH:mm");
 
     private static final Map<String, String> MONTHS = Map.ofEntries(
             entry("янв", "01"),
@@ -21,14 +28,26 @@ public class SqlRuDateTimeParser implements DateTimeParser {
             entry("сен", "09"),
             entry("окт", "10"),
             entry("ноя", "11"),
-            entry("дек", "12"),
-            entry("сегодня", LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("d-MM-yy"))),
-            entry("вчера", LocalDateTime.now()
-                    .minusDays(1).format(DateTimeFormatter.ofPattern("d-MM-yy"))));
+            entry("дек", "12"));
 
     @Override
     public LocalDateTime parse(String parse) {
-        return null;
+        LocalDateTime rsl = null;
+        String month = "сегодня";
+        String[] dateTime  = parse.trim().split(", ");
+
+        if (TODAY.equals(dateTime[0])) {
+            return LocalDateTime.parse(TODAY.get("сегодня") + " " + dateTime[1], formatter);
+        } else if (YESTERDAY.equals(dateTime[0])) {
+            return LocalDateTime.parse(YESTERDAY.get("вчера") + " " + dateTime[1], formatter);
+        }
+
+        String[] dayAndYear = dateTime[0].split(" " + month + " ");
+        rsl = LocalDateTime.parse(dayAndYear[0] + "-"
+                        + MONTHS.get(month) + "-"
+                        + dayAndYear[1] + " "
+                        + dateTime[1],
+                formatter);
+        return rsl;
     }
 }
