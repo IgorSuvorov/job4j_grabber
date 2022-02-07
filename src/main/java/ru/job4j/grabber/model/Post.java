@@ -6,9 +6,25 @@ import java.util.Objects;
 public class Post {
 
     private int id;
+    private String title;
     private String link;
     private String description;
     private LocalDateTime created;
+
+    public Post(int id, String title, String link, String description, LocalDateTime created) {
+        this.id = id;
+        this.title = title;
+        this.link = link;
+        this.description = description;
+        this.created = created;
+    }
+
+    public Post(String title, String link, String description, LocalDateTime created) {
+        this.title = title;
+        this.link = link;
+        this.description = description;
+        this.created = created;
+    }
 
     public int getId() {
         return id;
@@ -16,6 +32,14 @@ public class Post {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getLink() {
@@ -51,12 +75,13 @@ public class Post {
             return false;
         }
         Post post = (Post) o;
-        return id == post.id && Objects.equals(link, post.link);
+        return id == post.id && Objects.equals(link, post.link)
+                && Objects.equals(title, post.title);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, link);
+        return Objects.hash(id, link, title);
     }
 
     @Override
@@ -64,6 +89,8 @@ public class Post {
         return "Post{"
                 +
                 "id=" + id
+                +
+                "title=" + title
                 +
                 ", link='" + link + '\''
                 +
