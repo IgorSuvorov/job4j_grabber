@@ -22,13 +22,14 @@ public class SqlRuDateTimeParserTest {
     public void parseToday() {
         SqlRuDateTimeParser srdtp = new SqlRuDateTimeParser();
         String testDate =  "сегодня, 02:30";
-        assertThat(srdtp.parse(testDate).toString(), is("2022-02-07T02:30"));
+        assertThat(srdtp.parse(testDate).toString(), is(LocalDate.now() + "T02:30"));
     }
 
     @Test
     public void parseYesterday() {
         SqlRuDateTimeParser srdtp = new SqlRuDateTimeParser();
         String testDate =  "вчера, 19:23";
-        assertThat(srdtp.parse(testDate).toString(), is("2022-02-06T19:23"));
+        assertThat(srdtp.parse(testDate).toString(), is(LocalDate.now()
+                .minusDays(1) + "T19:23"));
     }
 }
