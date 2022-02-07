@@ -2,6 +2,7 @@ package ru.job4j.grabber.utils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
@@ -33,10 +34,10 @@ public class SqlRuDateTimeParser implements DateTimeParser {
         String[] dateTime  = parse.split(", ");
 
         if (TODAY.equals(dateTime[0])) {
-            return LocalDateTime.parse(LocalDate.now() + " " + dateTime[1], FORMATTER);
+            return LocalDateTime.of(LocalDate.now(), LocalTime.parse(dateTime[1]));
         } else if (YESTERDAY.equals(dateTime[0])) {
-            return LocalDateTime.parse(LocalDateTime.now()
-                    .minusDays(1) + " " + dateTime[1], FORMATTER);
+            return LocalDateTime.of(LocalDate.now()
+                    .minusDays(1), LocalTime.parse(dateTime[1]));
         }
 
         String[] dayMonthYear = dateTime[0].split(" ");
