@@ -8,11 +8,9 @@ import java.util.Map;
 import static java.util.Map.entry;
 
 public class SqlRuDateTimeParser implements DateTimeParser {
-    private static final Map<String, String> YESTERDAY = Map.of("сегодня", LocalDateTime.now()
-    .format(DateTimeFormatter.ofPattern("d-MM-yy")));
+    private static final String YESTERDAY = "вчера";
 
-    private static final Map<String, String> TODAY = Map.of("вчера", LocalDateTime.now()
-    .minusDays(1).format(DateTimeFormatter.ofPattern("d-MM-yy")));
+    private static final String TODAY = "сегодня";
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d-MM-yy HH:mm");
 
@@ -32,22 +30,20 @@ public class SqlRuDateTimeParser implements DateTimeParser {
 
     @Override
     public LocalDateTime parse(String parse) {
-        LocalDateTime rsl = null;
-        String month = "сегодня";
-        String[] dateTime  = parse.trim().split(", ");
+        String[] dateTime  = parse.split(", ");
 
         if (TODAY.equals(dateTime[0])) {
-            return LocalDateTime.parse(TODAY.get("сегодня") + " " + dateTime[1], FORMATTER);
+            return LocalDateTime.parse(LocalDate.now() + " " + dateTime[1], FORMATTER);
         } else if (YESTERDAY.equals(dateTime[0])) {
-            return LocalDateTime.parse(YESTERDAY.get("вчера") + " " + dateTime[1], FORMATTER);
+            return LocalDateTime.parse(LocalDateTime.now()
+                    .minusDays(1) + " " + dateTime[1], FORMATTER);
         }
 
-        String[] dayAndYear = dateTime[0].split(" " + month + " ");
-        rsl = LocalDateTime.parse(dayAndYear[0] + "-"
-                        + MONTHS.get(month) + "-"
-                        + dayAndYear[1] + " "
+        String[] dayMonthYear = dateTime[0].split(" ");
+        return LocalDateTime.parse(dayMonthYear[0] + "-"
+                        + MONTHS.get(dayMonthYear[1]) + "-"
+                        + dayMonthYear[2] + " "
                         + dateTime[1],
                 FORMATTER);
-        return rsl;
     }
 }
