@@ -17,11 +17,12 @@ public class SqlRuDateTimeParserTest {
         String testDate =  "2 дек 19, 22:29";
         assertThat(srdtp.parse(testDate).toString(), is("2019-12-02T22:29"));
     }
-
-//    @Test
-//    public void parseToday() {
-//        SqlRuDateTimeParser srdtp = new SqlRuDateTimeParser();
-//        String testDate =  "сегодня, 02:30";
-//        assertThat(srdtp.parse(testDate).toString(), is("2022-02-07T02:30"));
-//    }
+    /*
+    @Test
+    public void parseToday() {
+        SqlRuDateTimeParser srdtp = new SqlRuDateTimeParser();
+        String testDate =  "сегодня, 02:30";
+        assertThat(srdtp.parse(testDate).toString(), is("2022-02-07T02:30"));
+    }
+     */
 }
