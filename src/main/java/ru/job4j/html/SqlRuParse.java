@@ -25,23 +25,6 @@ public class SqlRuParse implements Parse {
         this.dateTimeParser = dateTimeParser;
     }
 
-    public static void main(String[] args) throws Exception {
-        Properties config = new Properties();
-        try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
-            config.load(in);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        PsqlStore ps = new PsqlStore(config);
-        SqlRuParse srp = new SqlRuParse(new SqlRuDateTimeParser());
-        List<Post> posts = srp.list("https://www.sql.ru/forum/job-offers");
-        for (Post post : posts) {
-            ps.save(post);
-        }
-        ps.getAll();
-        ps.findById(1);
-    }
-
     @Override
     public List<Post> list(String link) {
         List<Post> posts = new ArrayList<>();

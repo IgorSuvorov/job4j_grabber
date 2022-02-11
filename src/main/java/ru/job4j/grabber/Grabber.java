@@ -87,7 +87,6 @@ public class Grabber implements Grab {
         }
     }
 
-
     public static void main(String[] args) throws Exception {
         Grabber grab = new Grabber();
         grab.cfg();
