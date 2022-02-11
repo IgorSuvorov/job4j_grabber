@@ -37,21 +37,23 @@ public class SqlRuParse implements Parse {
     @Override
     public List<Post> list(String link) {
         List<Post> posts = new ArrayList<>();
-        try {
-            Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers").get();
-            Elements row = doc.select(".postslisttopic");
-            for (Element td : row) {
-                posts.add(detail(td.child(0).attr("href")));
+        for (int page = 1; page <= 5; page++) {
+            try {
+                Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers/" + page).get();
+                Elements row = doc.select(".postslisttopic");
+                for (Element td : row) {
+                    posts.add(detail(td.child(0).attr("href")));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         return posts;
     }
 
     @Override
     public Post detail(String link) {
-        SqlRuDateTimeParser sq = new SqlRuDateTimeParser();
+        SqlRuParse srp = new SqlRuParse(new SqlRuDateTimeParser());
         Post post = new Post();
         try {
             Document doc = Jsoup.connect(link).get();
@@ -59,7 +61,7 @@ public class SqlRuParse implements Parse {
             String description = row.first().select(".msgBody").get(1).text();
             String title = row.first().select(".messageHeader").text();
             String created = row.last().select(".msgFooter").text();
-            return new Post(title, link, description, sq.parse(created));
+            return new Post(title, link, description, dateTimeParser.parse(created));
         } catch (IOException e) {
             e.printStackTrace();
         }
