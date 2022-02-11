@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 public class SqlRuParse implements Parse {
@@ -49,7 +50,12 @@ public class SqlRuParse implements Parse {
                 Document doc = Jsoup.connect(link + page).get();
                 Elements row = doc.select(".postslisttopic");
                 for (Element td : row) {
-                    posts.add(detail(td.child(0).attr("href")));
+                    if (
+                            td.child(0).text().toLowerCase(Locale.ROOT).contains("java")
+                            && !td.child(0).text().toLowerCase(Locale.ROOT).contains("javascript")
+                    ) {
+                        posts.add(detail(td.child(0).attr("href")));
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -60,7 +66,6 @@ public class SqlRuParse implements Parse {
 
     @Override
     public Post detail(String link) {
-        SqlRuParse srp = new SqlRuParse(new SqlRuDateTimeParser());
         Post post = new Post();
         try {
             Document doc = Jsoup.connect(link).get();
