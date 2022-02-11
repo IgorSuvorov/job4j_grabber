@@ -5,13 +5,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import ru.job4j.grabber.Parse;
+import ru.job4j.grabber.PsqlStore;
 import ru.job4j.grabber.model.Post;
 import ru.job4j.grabber.utils.DateTimeParser;
 import ru.job4j.grabber.utils.SqlRuDateTimeParser;
+import ru.job4j.quartz.AlertRabbit;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class SqlRuParse implements Parse {
     private final DateTimeParser dateTimeParser;
@@ -21,17 +25,20 @@ public class SqlRuParse implements Parse {
     }
 
     public static void main(String[] args) throws Exception {
-        for (int page = 1; page <= 5; page++) {
-            Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers/" + page).get();
-            Elements row = doc.select(".postslisttopic");
-            for (Element td : row) {
-                Element href = td.child(0);
-                String date = td.parent().child(5).text();
-                System.out.println(href.attr("href"));
-                System.out.println(href.text());
-                System.out.println(date);
-            }
+        Properties config = new Properties();
+        try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
+            config.load(in);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        PsqlStore ps = new PsqlStore(config);
+        SqlRuParse srp = new SqlRuParse(new SqlRuDateTimeParser());
+        List<Post> posts = srp.list("https://www.sql.ru/forum/job-offers/");
+        for (Post post : posts) {
+            ps.save(post);
+        }
+        ps.getAll();
+        ps.findById(1);
     }
 
     @Override
@@ -39,7 +46,7 @@ public class SqlRuParse implements Parse {
         List<Post> posts = new ArrayList<>();
         for (int page = 1; page <= 5; page++) {
             try {
-                Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers/" + page).get();
+                Document doc = Jsoup.connect(link + page).get();
                 Elements row = doc.select(".postslisttopic");
                 for (Element td : row) {
                     posts.add(detail(td.child(0).attr("href")));

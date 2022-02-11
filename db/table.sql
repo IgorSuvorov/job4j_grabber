@@ -1,5 +1,5 @@
-drop table if exists post;
-create table post
+drop table if exists posts;
+create table posts
 (
     id serial primary key,
     name varchar(255),
