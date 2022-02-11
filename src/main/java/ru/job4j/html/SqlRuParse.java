@@ -34,7 +34,7 @@ public class SqlRuParse implements Parse {
         }
         PsqlStore ps = new PsqlStore(config);
         SqlRuParse srp = new SqlRuParse(new SqlRuDateTimeParser());
-        List<Post> posts = srp.list("https://www.sql.ru/forum/job-offers/");
+        List<Post> posts = srp.list("https://www.sql.ru/forum/job-offers");
         for (Post post : posts) {
             ps.save(post);
         }
@@ -47,7 +47,7 @@ public class SqlRuParse implements Parse {
         List<Post> posts = new ArrayList<>();
         for (int page = 1; page <= 5; page++) {
             try {
-                Document doc = Jsoup.connect(link + page).get();
+                Document doc = Jsoup.connect(link + "/" + page).get();
                 Elements row = doc.select(".postslisttopic");
                 for (Element td : row) {
                     if (
