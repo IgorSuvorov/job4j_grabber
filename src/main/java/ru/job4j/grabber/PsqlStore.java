@@ -28,7 +28,7 @@ public class PsqlStore implements Store, AutoCloseable {
     public void save(Post post) {
         try (PreparedStatement statement =
                      connection.prepareStatement(
-                             "insert into posts(title, link, description, created) values (?, ?, ?, ?)",
+                             "insert into posts(name, link, description, created) values (?, ?, ?, ?)",
                              Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getLink());
@@ -80,7 +80,7 @@ public class PsqlStore implements Store, AutoCloseable {
 
     public static Post savedPost(ResultSet resultSet) throws SQLException {
         Post post = new Post(resultSet.getInt("id"),
-                resultSet.getString("title"),
+                resultSet.getString("name"),
                 resultSet.getString("link"),
                 resultSet.getString("description"),
                 resultSet.getTimestamp("created").toLocalDateTime());

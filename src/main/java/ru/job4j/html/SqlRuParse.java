@@ -56,6 +56,7 @@ public class SqlRuParse implements Parse {
             String description = row.first().select(".msgBody").get(1).text();
             String title = row.first().select(".messageHeader").text();
             String created = row.last().select(".msgFooter").text();
+            created = created.substring(0, created.indexOf('[') - 1);
             return new Post(title, link, description, dateTimeParser.parse(created));
         } catch (IOException e) {
             e.printStackTrace();
